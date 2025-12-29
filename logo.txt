@@ -1,3 +1,14 @@
+
+/*-------------------------------------------*\
+
+Copyright (C) 2025 s2510423
+
+This program is free software: 
+you can redistribute it and/or modify it under 
+the terms of the GNU General Public License...
+
+\*-------------------------------------------*/
+
 ┌─────────────────────────────────────────────┐
 │    ┌───\    ┌─────┐   ┌───\     ┌─────┐     │
 │    │ ┌┐ │   │ ┌───┘   │ ┌\ \    └─┐ ┌─┘     │
@@ -6,14 +17,12 @@
 │    │ └┘ │   ┌───┘ │   │ └/ /      │ │       │
 │    └───/    └─────┘   └───/       └─┘       │
 └─────────────────────────────────────────────┘
-        Bootleg Scientific Data Toolkit      
 /*-------------------------------------------*\
-고삐리가 대충만든 데이터 툴킷 v.1.0.0
 
+        Bootleg Scientific Data Toolkit        
+        고삐리가 대충만든 데이터 툴킷 v.0.0.0  
 
-Copyright (C) 2025 s2510423
-
-This program is free software: 
-you can redistribute it and/or modify it 
-under the terms of the GNU General Public License...
 \*-------------------------------------------*/
+
+
+Bootleg Execution Starting...
