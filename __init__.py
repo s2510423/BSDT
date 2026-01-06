@@ -1,5 +1,5 @@
 
-'''
+r'''
 /*-------------------------------------------*\
 Copyright (C) 2025 Brainless
 
@@ -28,7 +28,7 @@ try:
     from . import dirscanner
     from . import header
     from . import pack
-    print('''
+    print(r'''
 /*-------------------------------------------*\
 Copyright (C) 2025 Brainless
 
@@ -38,19 +38,26 @@ the terms of the GNU General Public License...
 \*-------------------------------------------*/
     ''')
     header.banner(False)
-except ImportError: 
-    print('[ImportError] Error Occured While Importing BSDT.')    
+except ImportError:
+    import sys   
+    print('[ImportError] Error Occured While Importing BSDT.')
+    sys.exit(0)
 try: 
     import pandas
     import numpy
     import openpyxl
 
 except ImportError:
+    from . import pack
     import sys
     import os
     print('[ImportError] Installing Required Packages Automatically...')
     print('[Not_Ice]     press Ctrl+C to inturrupt this process If this repeats repeatedly')
     pack.boot()
-    os.execl(sys.executable, sys.executable, *sys.argv)
+    if sys.argv == ['']:
+        print('[NotIce] It seems that this process is running on python enterpreter.')
+        print('[NotIce] just restart this process again, then it will work')
+        sys.exit(0)
+    else: os.execl(sys.executable, sys.executable, *sys.argv)
 __version__ = 'v.0.0.0'
 __author__ = 'Brainless'

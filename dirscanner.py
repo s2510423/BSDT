@@ -1,4 +1,3 @@
-import header
 import os
 from . import header
 
