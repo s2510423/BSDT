@@ -2,8 +2,6 @@ from . import header
 import os
 import shutil
 
-header.banner()
-
 
 class Folder:
     def __init__(self,name):

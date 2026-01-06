@@ -1,9 +1,6 @@
 import os
 from . import header
 
-
-header.banner()
-
 obj_list=[]
 
 class obj:
@@ -11,6 +8,7 @@ class obj:
         obj_list.append(name)
 
 def scan(name):
+    header.banner()
     try: 
         obj_list.clear()
         with open(os.path.join('BSDT_control',name,'target.bsdt'), 'r') as f:
@@ -20,6 +18,7 @@ def scan(name):
     except FileNotFoundError: print(f"[FileNotFoundError] It seems that {os.path.join('BSDT_control',name,'target.bsdt')} doesn't exist.")
 
 def write_targetlist(name,targetlist):
+    header.banner()
     if os.path.exists(os.path.join('BSDT_control',name)): pass
     else: os.makedirs(os.path.join('BSDT_control',name))
     with open(os.path.join('BSDT_control',name,'target.bsdt'), 'w') as f:
@@ -27,6 +26,7 @@ def write_targetlist(name,targetlist):
             f.write(f'{target}\n')
 
 def bsdtfile(name):
+    header.banner()
     target = []
     with open(os.path.join('BSDT_control',name,'dict.bsdt'), 'r') as f:
         lines = f.readlines()
@@ -38,6 +38,7 @@ def bsdtfile(name):
     write_targetlist(name,target)
 
 def starting(head,name):
+    header.banner()
     target = []
     for i in os.listdir('.'):
         j = i.strip()
@@ -47,6 +48,7 @@ def starting(head,name):
     write_targetlist(name,target)
 
 def ending(foot,name):
+    header.banner()
     target = []
     for i in os.listdir('.'):
         j = i.strip()
