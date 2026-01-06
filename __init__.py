@@ -24,6 +24,7 @@ the terms of the GNU General Public License...
 
 
 try: 
+    from . import FileManager
     from . import dirscanner
     from . import header
     from . import pack
