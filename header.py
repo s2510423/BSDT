@@ -64,7 +64,7 @@ def menu(title,content_list,size=1): # 메뉴 출력 함수
     print('|' + '-' * (width - 2) + '|')                            # |-------------------------|
     for content in content_list:                                    #     [  1  ]    content 1
         num += 1                                                    #     [  2  ]    content 2
-        print(' ' * 4 + f'[{num.center(5)}]' + ' ' * 4 + content)   #     [  3  ]    content 3
+        print(' ' * 4 + f'[{str(num).center(5)}]' + ' ' * 4 + content)   #     [  3  ]    content 3
     print('\\*' + '-' * (width - 4) + '*/')                         # \*-----------------------*/
     return input('[Select Your Choice]: ')                          # [Select Your Choice]: {input}
     
