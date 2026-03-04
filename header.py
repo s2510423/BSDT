@@ -27,44 +27,48 @@ def banner(short_bull=True):
     else: pass
     log()
 
-
+class Exit(Exception): pass
 def menu(title,content_list,size=1): # 메뉴 출력 함수
 
     # 예외처리
         # 1. 제목과 내용 존재 확인
-    if not (title and content_list):
-        print('[Error Occured] Title or Content is not given') # 에러 메세지
-        return None # None을 반환하고 함수 종료
+    if not (title and content_list): raise SyntaxError('Title or Content is not given')
 
         # 2. 제목과 내용의 자료형 확인
-    if not type(title) == str:
-        print('[Error Occured] Title needs to be string')
-        return None
-    if not type(content_list) == list:
-        print('[Error Occured] Content needs to be list')
-        return None
+    if not isinstance(title, str): raise TypeError('Title needs to be string')
+    if not isinstance(content_list, list): raise TypeError('Content needs to be list')
 
     width = size * 22 + 4 # 메뉴 너비 설정
 
         # 3. 제목의 메뉴 외부 침범 여부 확인
-    if not len(title) <= width :
-        print('[Error Occured] Title is longer than width of the menu.')
-        return None
+    if len(title) > width : raise ValueError('Title is longer than width of the menu.')
 
         # 4. 내용의 메뉴 외부 침범 여부 확인
     for content in content_list:
-        if not len(str(content)) <= width - 15 :
-            print(f'[Error Occured] Content is longer than width of the menu: {content}')
-            return None
+        margin = 4 + 7 + 4 # 공백 + 숫자박스 + 공백
+        if len(str(content)) > width - margin : raise ValueError(f'Content is longer than width of the menu: {content}')
 
     # 실행 함수
     num = 0
-    print('/*' + '-' * (width - 4) + '*\\')                         # /*-----------------------*\
-    print(title.center(width))                                      #         menu title         
-    print('|' + '-' * (width - 2) + '|')                            # |-------------------------|
-    for content in content_list:                                    #     [  1  ]    content 1
-        num += 1                                                    #     [  2  ]    content 2
-        print(' ' * 4 + f'[{str(num).center(5)}]' + ' ' * 4 + content)   #     [  3  ]    content 3
-    print('\\*' + '-' * (width - 4) + '*/')                         # \*-----------------------*/
-    return input('[Select Your Choice]: ')                          # [Select Your Choice]: {input}
-    
+    print('/*' + '-' * (width - 4) + '*\\')                             # /*-----------------------*\
+    print(title.center(width))                                          #         menu title         
+    print('|' + '-' * (width - 2) + '|')                                # |-------------------------|
+    for content in content_list:                                        #     [  1  ]    content 1
+        num += 1                                                        #     [  2  ]    content 2
+        print(' ' * 4 + f'[{str(num).center(5)}]' + ' ' * 4 + content)  #     [  3  ]    content 3
+    num += 1; print(f'    [{str(num).center(5)}]    exit')              #     [  4  ]    exit
+    print('\\*' + '-' * (width - 4) + '*/')                             # \*-----------------------*/
+    while True:
+        try: choice =  int(input('[Select Your Choice]: '))                           # [Select Your Choice]: {input}
+        # 예외처리
+            # 1. 선택 항목 형식 확인
+        except ValueError: 
+            print('Choice is required to be integer')
+            continue
+            # 2. 선택 항목 존재 확인
+        if not 0 < choice <= num: 
+            print(f'Invalid Choice: {choice}')
+            continue
+        # 설마 이걸 뚫고 실수를 해내겠어...?
+        elif choice == num: raise Exit('User Decided to Exit')
+        else: return choice
