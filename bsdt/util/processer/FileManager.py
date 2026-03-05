@@ -1,8 +1,7 @@
-from . import header
 import os
 import shutil
 
-
+folders = []
 class Folder:
     def __init__(self,name):
         # path form: dir1/dir2/file
