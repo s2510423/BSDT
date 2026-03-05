@@ -13,3 +13,5 @@ def excel(dir):
         # 4. 파일 존재여부 확인
     target =  os.path.join(dir)
     if not  os.path.isfile(target): raise FileNotFoundError('target file does not exist')
+    
+    output = []
