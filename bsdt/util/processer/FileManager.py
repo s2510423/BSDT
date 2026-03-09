@@ -8,8 +8,9 @@ class Obj: # 목적물 객체 클래스: 파일/디렉토리
         # !!!!!!Without space!!!!!!
         # 
         self.path = os.path.join(*name.split('/')) # OS에 맞는 경로 형식으로 변환
-        if str(name.split('/')[-1]).endswith('.xlsx'): name = text(name) # 확장자 검사 및 하위 클래스 자동 적용
+        if str(name.split('/')[-1]).endswith('.txt'): name = text(name) # 확장자 검사 및 하위 클래스 자동 적용
         if str(name.split('/')[-1]).endswith('.xlsx'): name = excel(name)
+        
     def delete(self, path): # 파일/디렉토리 삭제 메서드
         ok = True
         target_path = os.path.join(self.path,*path.split('/'))
