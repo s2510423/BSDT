@@ -1,4 +1,4 @@
-import matplotlib
+import matplotlib.pyplot as plt
 import numpy
 import os
 import pandas
@@ -6,18 +6,19 @@ import pandas
 def type_check(obj,obj_type):
     if not isinstance(obj,obj_type): raise TypeError(f'{obj} is required to be {obj_type}')
 
-def plotter(dataframe,x_key,y_keys,y_colors,title='',x_label='',y_label=''):
+def plotter(dataframe,path,x_key,y_keys,y_colors,title='',x_label='',y_label='',xticks=True,yticks=True):
     if not (dataframe and x_key and y_keys and y_colors): raise ValueError('from util/processer/plotter.py plotter: not enough arguments')
     args = {
-        dataframe   :   pandas.DataFrame,
-        x_key       :   str,
-        y_keys      :   dict,
-        title       :   str,
-        x_label     :   str,
-        y_label     :   str
-        }
-    for arg in args:
-        if not type_check(arg, args[arg]): raise TypeError('from util/processer/plotter.py plotter: not proper argument detected')
+        'dataframe' :   pandas.DataFrame,
+        'path'      :   list, 
+        'x_key'     :   str,
+        'y_keys'    :   list,
+        'y_colors'  :   list,
+        'title'     :   str,
+        'x_label'   :   str,
+        'y_label'   :   str
+    }
+    for arg in args: type_check(locals()[arg], args[arg])
     colors = {
         'black' :   (0.0,0.0,0.0,1.0),
         'red'   :   (1.0,0.0,0.0,1.0),
@@ -26,28 +27,28 @@ def plotter(dataframe,x_key,y_keys,y_colors,title='',x_label='',y_label=''):
         'purple':   (1.0,0.0,1.0,1.0),
         'yellow':   (1.0,1.0,0.0,1.0),
         'cyan'  :   (0.0,1.0,1.0,1.0),
-        'orange':   (1.0,0.5,1.0,1.0),
+        'orange':   (1.0,0.5,0.0,1.0),
     }
     x = dataframe[x_key]
     y = []
     for y_key in y_keys:
         y.append(dataframe[y_key])
-        i = 0
-    while i < len(y):
-        matplotlib.plot(x, y[i], label = y_key, color = y_colors[i], linestyle="-", marker="")
-
-    matplotlib.title(title)
-    matplotlib.xticks([])
-    matplotlib.grid(axis='x', visible=False)
-    matplotlib.xlabel(x_label)
-    matplotlib.ylabel(y_label)
-    matplotlib.grid(True)
-    matplotlib.legend(
+    for i, y_key in enumerate(y):
+        plt.plot(x, y_key, label = y_keys[i], color = colors[y_colors[i]], linestyle="-", marker="")
+    plt.title(title)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.grid(True)
+    if xticks == False:
+        plt.xticks([])
+    if yticks == False:
+        plt.yticks([])
+    plt.legend(
         loc       = "lower right",
         frameon   = True,
         edgecolor = "black",
         facecolor = "white",
         )
 
-    matplotlib.savefig(f"{title}.png", dpi=300, bbox_inches='tight')
-    matplotlib.close()
+    plt.savefig(f"{os.path.join(path)}{title}.png", dpi=300, bbox_inches='tight')
+    plt.close()
