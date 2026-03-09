@@ -50,5 +50,5 @@ def plotter(dataframe,path,x_key,y_keys,y_colors,title='',x_label='',y_label='',
         facecolor = "white",
         )
 
-    plt.savefig(f"{os.path.join(path)}{title}.png", dpi=300, bbox_inches='tight')
+    plt.savefig(f"{os.path.join(*path)}{title}.png", dpi=300, bbox_inches='tight')
     plt.close()
