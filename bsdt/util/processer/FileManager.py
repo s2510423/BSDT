@@ -1,16 +1,35 @@
 import os
 import shutil
+import pandas
+import re
+def validate(directory,ext):
+        # 1. 입력 데이터 형식: 리스트
+    if not isinstance(directory,list): raise TypeError('input type is required to be List') 
+        # 2. 내용물 형식: 문자열
+    for path in directory:
+        if not isinstance(path, str): raise TypeError('contents of input List are required to be String')
+        # 3. 파일 확장자 확인
+    if not directory[-1].endswith('.'+ext): raise ValueError(f'target file must be .{ext}')
+        # 4. 파일 존재여부 확인
+    target =  os.path.join(*directory)
+    if not  os.path.isfile(target): raise FileNotFoundError('target file does not exist')
+    return target
 
-
+Obj_list = list()
+text_list = list()
+csv_list = list()
+excel_list = list()
+forces_list = list()
 class Obj: # 목적물 객체 클래스: 파일/디렉토리
-    def __init__(self,name):
-        # path form: dir1/dir2/file
-        # !!!!!!Without space!!!!!!
-        # 
-        self.path = os.path.join(*name.split('/')) # OS에 맞는 경로 형식으로 변환
-        if str(name.split('/')[-1]).endswith('.txt'): name = text(name) # 확장자 검사 및 하위 클래스 자동 적용
-        if str(name.split('/')[-1]).endswith('.xlsx'): name = excel(name)
-        
+    def __init__(self,path):
+        # path form: list
+        self.path = os.path.join(*path) # OS에 맞는 경로 형식으로 변환
+        self.name = str(path[-1])
+        if self.name.endswith('.txt' ): return text    (self.path,path) # 확장자 검사 및 하위 클래스 자동 적용
+        elif self.name.endswith('.xlsx'): return excel   (self.path,path)
+        elif self.name.endswith('.csv' ): return csv     (self.path,path)
+        elif self.name ==   'forces.dat': return forces  (self.path,path)
+        Obj_list.append(self)
     def delete(self, path): # 파일/디렉토리 삭제 메서드
         ok = True
         target_path = os.path.join(self.path,*path.split('/'))
@@ -19,15 +38,11 @@ class Obj: # 목적물 객체 클래스: 파일/디렉토리
             repeat = True
             while repeat == True:
                 ans = input('ARE YOU SURE...?  [Y/N]: ').lower()
-                if ans == 'y': 
-                    ok = True
-                    repeat = False
+                if ans == 'y':repeat = False
                 elif ans == 'n': 
                     ok = False
                     repeat = False
-                else: 
-                    print('[ERROR OCCURED] TYPE IT CORRECTLY!!!!')
-                    repeat = True
+                else: print('[ERROR OCCURED] TYPE IT CORRECTLY!!!!')
         if ok == True:
             if os.path.isfile(target_path): 
                 os.remove(target_path)
@@ -41,7 +56,7 @@ class Obj: # 목적물 객체 클래스: 파일/디렉토리
         path = os.path.join(*raw_path.split('/'))
         source = os.path.join('....', 'BSDT_control', name, '__host__',path)
         target = os.path.join(self.path,path)
-        if os.path.isfile(target):
+        if os.path.isfile(target): 
             shutil.copy2(source,target)
             print(f'[FILE Update] Update {target}')
         elif os.path.isdir(target):
@@ -49,9 +64,47 @@ class Obj: # 목적물 객체 클래스: 파일/디렉토리
             print(f'[FOLDER Update] Update {target}')
         else: print(f'[ERROR OCCURED] {target} seems to be something that must not exist here...')
 
-class text(Obj): # 텍스트 파일 객체 클래스
-    def read(): pass
+class text(Obj):
+    def __init__(self,path): 
+        validate(path,'txt')
+        text_list.append(self)
+    def read(self,idx,idxinterval = 1):    # txt파일 읽기: 파일 형식은 \n(개행)으로 구분된 실수 리스트
+        with open(self.path,'r') as f:
+            try: value = [float(line.strip(' ')) for line in f.readlines() if line.strip(' ')]
+            except ValueError: raise TypeError('target file must not include something is not number')
+        return pandas.DataFrame({
+            self.name   : value,
+            idx: range(1,idxinterval*len(value)+1,idxinterval)
+            })
+class csv(Obj): # csv 파일 객체 클래스
+    def __init__(self,path): 
+        validate(path,'csv')
+        csv_list.append(self)
+    def read(self): return pandas.read_excel(self.path) # 출력 형식: pandas Dataframe
 class excel(Obj): # 엑셀 파일 객체 클래스
-    def read(): pass
+    def __init__(self,path): 
+        validate(path,'xlsx')
+        excel_list.append(self)
+    def read(self): return pandas.read_excel(self.path)
+class forces(Obj): # forces.dat 파일 전용 객체 클래스
+    def __init__(self,path): 
+        validate(path,'forces.dat')
+        forces_list.append(self)
+    def read(self):
+        with open(validate(self,'dat'),'r') as f:
+            content = f.readlines()
+        if not content[2].startswith('# Time'):raise ValueError('Invalid Form')
+        else: content = content[3:]
+        output = { k : [] for k in ['Time']+[a+b for a in ['F','M'] for b in ['x','y','z']]}
+        for line in content:
+            temp = list(map(float,re.findall(r'[+-]?\d+(?:\.\d+)?(?:[Ee][+-]\d+)?',line)))
+            output['Time'].append(temp[ 0]         )
+            output[ 'Fx' ].append(temp[ 1]+temp[ 4])    # 자동화를
+            output[ 'Fy' ].append(temp[ 2]+temp[ 5])    # 어떻게
+            output[ 'Fz' ].append(temp[ 3]+temp[ 6])    # 해야
+            output[ 'Mx' ].append(temp[ 7]+temp[10])    # 될지 
+            output[ 'My' ].append(temp[ 8]+temp[11])    # 모르겠다
+            output[ 'Mz' ].append(temp[ 9]+temp[12])    # 그래서 그냥 방치하기로 결정함
+        return pandas.DataFrame(output)
 
 
