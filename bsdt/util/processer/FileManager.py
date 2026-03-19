@@ -4,45 +4,54 @@ import pandas
 import re
 def validate(directory,ext):
         # 1. 입력 데이터 형식: 리스트
-    if not isinstance(directory,list): raise TypeError('input type is required to be List') 
+    if not isinstance(directory,list): 
+        print('input type is required to be List') 
+        return None
         # 2. 내용물 형식: 문자열
     for path in directory:
-        if not isinstance(path, str): raise TypeError('contents of input List are required to be String')
+        if not isinstance(path, str): 
+            print('contents of input List are required to be String')
+            return None
         # 3. 파일 확장자 확인
-    if not directory[-1].endswith('.'+ext): raise ValueError(f'target file must be .{ext}')
+    if not directory[-1].endswith(ext):
+        print(f'target file is not .{ext}')
+        return None
         # 4. 파일 존재여부 확인
     target =  os.path.join(*directory)
     if not  os.path.isfile(target): raise FileNotFoundError('target file does not exist')
-    return target
+    return True
 
 Obj_list = list()
 text_list = list()
 csv_list = list()
 excel_list = list()
 forces_list = list()
+def factory(path): # Obj 및 그 자식 클래스를 자동 검출 및 할당. 
+    if not validate(directory,''): raise ValueError()
+    path = os.path.join(*path)
+    if self.name.endswith('.txt' ): return text      (path) # 확장자 검사 및 하위 클래스 자동 적용
+    elif self.name.endswith('.xlsx'): return excel   (path)
+    elif self.name.endswith('.csv' ): return csv     (path)
+    elif self.name ==   'forces.dat': return forces  (path)
 class Obj: # 목적물 객체 클래스: 파일/디렉토리
     def __init__(self,path):
         # path form: list
         self.path = os.path.join(*path) # OS에 맞는 경로 형식으로 변환
         self.name = str(path[-1])
-        if self.name.endswith('.txt' ): return text    (self.path,path) # 확장자 검사 및 하위 클래스 자동 적용
-        elif self.name.endswith('.xlsx'): return excel   (self.path,path)
-        elif self.name.endswith('.csv' ): return csv     (self.path,path)
-        elif self.name ==   'forces.dat': return forces  (self.path,path)
+
         Obj_list.append(self)
-    def delete(self, path): # 파일/디렉토리 삭제 메서드
+    def delete(self): # 파일/디렉토리 삭제 메서드
         ok = True
-        target_path = os.path.join(self.path,*path.split('/'))
-        if target_path.strip() == '' or target_path == '.' : 
-            print(f'[CAUTION] You are attempting to delete {self.path}..')
-            repeat = True
-            while repeat == True:
-                ans = input('ARE YOU SURE...?  [Y/N]: ').lower()
-                if ans == 'y':repeat = False
-                elif ans == 'n': 
-                    ok = False
-                    repeat = False
-                else: print('[ERROR OCCURED] TYPE IT CORRECTLY!!!!')
+        target_path = os.path.join(self.path)
+        print(f'[CAUTION] You are attempting to delete {self.path}..')
+        repeat = True
+        while True:
+            ans = input('ARE YOU SURE...?  [Y/N]: ').lower()
+            if ans == 'y':break
+            elif ans == 'n': 
+                ok = False
+                break
+            else: print('[ERROR OCCURED] TYPE IT CORRECTLY!!!!')
         if ok == True:
             if os.path.isfile(target_path): 
                 os.remove(target_path)
@@ -52,21 +61,20 @@ class Obj: # 목적물 객체 클래스: 파일/디렉토리
                 print(f'[FOLDER Removal] Removed {target_path}')
             else: print(f'[ERROR OCCURED] {target_path} seems to be something that must not exist here...')
 
-    def update(self, raw_path, name,  script_depth = 0):
-        path = os.path.join(*raw_path.split('/'))
+    def update(self, name,  script_depth = 0):
         source = os.path.join('....', 'BSDT_control', name, '__host__',path)
-        target = os.path.join(self.path,path)
+        target = os.path.join(self.path)
         if os.path.isfile(target): 
             shutil.copy2(source,target)
-            print(f'[FILE Update] Update {target}')
+            print(f'[FILE Update] Updated {target}')
         elif os.path.isdir(target):
             shutil.copytree(source,target)
-            print(f'[FOLDER Update] Update {target}')
+            print(f'[FOLDER Update] Updated {target}')
         else: print(f'[ERROR OCCURED] {target} seems to be something that must not exist here...')
 
 class text(Obj):
     def __init__(self,path): 
-        validate(path,'txt')
+        validate(path,'.txt')
         text_list.append(self)
     def read(self,idx,idxinterval = 1):    # txt파일 읽기: 파일 형식은 \n(개행)으로 구분된 실수 리스트
         with open(self.path,'r') as f:
@@ -78,12 +86,12 @@ class text(Obj):
             })
 class csv(Obj): # csv 파일 객체 클래스
     def __init__(self,path): 
-        validate(path,'csv')
+        validate(path,'.csv')
         csv_list.append(self)
-    def read(self): return pandas.read_excel(self.path) # 출력 형식: pandas Dataframe
+    def read(self): return pandas.read_csv(self.path) # 출력 형식: pandas Dataframe
 class excel(Obj): # 엑셀 파일 객체 클래스
     def __init__(self,path): 
-        validate(path,'xlsx')
+        validate(path,'.xlsx')
         excel_list.append(self)
     def read(self): return pandas.read_excel(self.path)
 class forces(Obj): # forces.dat 파일 전용 객체 클래스
@@ -91,7 +99,7 @@ class forces(Obj): # forces.dat 파일 전용 객체 클래스
         validate(path,'forces.dat')
         forces_list.append(self)
     def read(self):
-        with open(validate(self,'dat'),'r') as f:
+        with open(validate(self.path.split(os.sep),'dat'),'r') as f:
             content = f.readlines()
         if not content[2].startswith('# Time'):raise ValueError('Invalid Form')
         else: content = content[3:]
