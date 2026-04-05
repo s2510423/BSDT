@@ -20,7 +20,7 @@ def validate(directory,ext):
     target =  os.path.join(*directory)
     if not  os.path.isfile(target): raise FileNotFoundError('target file does not exist')
     return True
-
+# 각 클래스 객체 리스트
 Obj_list = list()
 text_list = list()
 csv_list = list()
@@ -43,23 +43,13 @@ class Obj: # 목적물 객체 클래스: 파일/디렉토리
     def delete(self): # 파일/디렉토리 삭제 메서드
         ok = True
         target_path = os.path.join(self.path)
-        print(f'[CAUTION] You are attempting to delete {self.path}..')
-        repeat = True
-        while True:
-            ans = input('ARE YOU SURE...?  [Y/N]: ').lower()
-            if ans == 'y':break
-            elif ans == 'n': 
-                ok = False
-                break
-            else: print('[ERROR OCCURED] TYPE IT CORRECTLY!!!!')
-        if ok == True:
-            if os.path.isfile(target_path): 
-                os.remove(target_path)
-                print(f'[FILE Removal] Removed {target_path}')
-            elif os.path.isdir(target_path): 
-                shutil.rmtree(target_path)
-                print(f'[FOLDER Removal] Removed {target_path}')
-            else: print(f'[ERROR OCCURED] {target_path} seems to be something that must not exist here...')
+        if os.path.isfile(target_path): 
+            os.remove(target_path)
+            print(f'[FILE Removal] Removed {target_path}')
+        elif os.path.isdir(target_path): 
+            shutil.rmtree(target_path)
+            print(f'[FOLDER Removal] Removed {target_path}')
+        else: print(f'[ERROR OCCURED] {target_path} seems to be something that must not exist here...')
 
     def update(self, name,  script_depth = 0):
         source = os.path.join('....', 'BSDT_control', name, '__host__',path)
@@ -78,7 +68,7 @@ class text(Obj):
         text_list.append(self)
     def read(self,idx,idxinterval = 1):    # txt파일 읽기: 파일 형식은 \n(개행)으로 구분된 실수 리스트
         with open(self.path,'r') as f:
-            try: value = [float(line.strip(' ')) for line in f.readlines() if line.strip(' ')]
+            try: value = [float(line.strip('')) for line in f.readlines() if line.strip('')]
             except ValueError: raise TypeError('target file must not include something is not number')
         return pandas.DataFrame({
             self.name   : value,
