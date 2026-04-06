@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 obj_list=[]
 
@@ -10,16 +10,16 @@ def scan(name):
     
     try: 
         obj_list.clear()
-        with open(os.path.join('BSDT_control',name,'target.bsdt'), 'r') as f:
-            lines = f.readlines()
+        with open(Path('BSDT_control',name,'target.bsdt'), 'r') as f:
+            lines = f.readlines() 
             for line in lines:obj(line)
 
     except FileNotFoundError: print(f"[FileNotFoundError] It seems that {os.path.join('BSDT_control',name,'target.bsdt')} doesn't exist.")
 
 def write_targetlist(name,targetlist):
     
-    if os.path.exists(os.path.join('....','BSDT_control',name)): pass
-    else: os.makedirs(os.path.join('....','BSDT_control',name))
+    if os.path.exists(os.path.join(,'BSDT_control',name)): pass
+    else: os.makedirs(os.path.join(,'BSDT_control',name))
     with open(os.path.join('BSDT_control',name,'target.bsdt'), 'w') as f:
         for target in targetlist:
             f.write(f'{target}\n')

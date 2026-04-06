@@ -18,9 +18,10 @@ try:
     import openpyxl
 
 except ModuleNotFoundError:
-    from bsdt import pack
     import sys
     import os
+    from pathlib import Path
+    subprocess.run([sys.executable, '-m','pip','install','-r', str((Path(__file__).parent / 'requirements.txt').resolve())])
     print('[ModuleNotFoundError] Installing Required Packages Automatically...')
     print('[Not_Ice]     press Ctrl+C to inturrupt this process If this repeats repeatedly')
     pack.boot()
