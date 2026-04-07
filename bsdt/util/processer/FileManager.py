@@ -1,12 +1,25 @@
-import os
 import shutil
 import pandas
 import re
 from pathlib import Path
 from typing import Union
-
-class Obj: # 목적물 객체 클래스: 파일/디렉토리
+class Root: # 프로젝트 루트 클래스
     registry = {}
+    def __init__(self):
+        path =  
+class Case: # 케이스 객체 클래스
+    pass # TODO
+class Obj: # 목적물 객체 클래스: 파일/디렉토리
+    @classmethod
+    def create(cls, path:Union[str, list, Path]): # Obj 자식 클래스 검출 및 할당. 
+        path = Path(*path) if isinstance(path,list) else Path(path)
+        if not path.exists(): raise FileNotFoundError
+        match Path(path).suffix:
+            case '.txt' : return text   (path)
+            case '.csv' : return csv    (path)
+            case '.xlsx': return excel  (path)
+            case '.dat' : return forces (path)
+            case _      : return Obj    (path)
     def __init__(self, path:Union[str, list, Path]):
         self.path = Path(*path) if isinstance(path,list) else Path(path)
         if not self.path.exists(): raise FileNotFoundError
@@ -17,32 +30,24 @@ class Obj: # 목적물 객체 클래스: 파일/디렉토리
         if not self.path.parent.name in Obj.registry: Obj.registry[self.path.parent.name] = {}
         if not classname in Obj.registry[self.path.parent.name]: Obj.registry[self.path.parent.name][classname] = []
         Obj.registry[self.path.parent.name][classname].append(self)
-    @classmethod
-    def create(cls, path:Union[str, list, Path]): # Obj 자식 클래스 검출 및 할당. 
-        path = Path(*path) if isinstance(path,list) else Path(path)
-        if not path.exists(): raise FileNotFoundError
-        match Path(path).suffix:
-            case '.txt' : return text  (path)
-            case '.csv' : return csv   (path)
-            case '.xlsx': return excel (path)
-            case '.dat' : return forces(path)
-    def delete(self): # 파일/디렉토리 삭제 메서드
-        if self.path.is_file(self.path): 
-            self.path.unlink(self.path)
-            Obj.registry[self.parent.name][classname].remove(self)
+    def delete(self, target: list): # 파일/디렉토리 삭제 메서드. target은 self 기준 상대경로
+        if target: target_path = self.path.joinpath(*target).resolve()
+        else: raise ValueError('target Not Found')
+        if target_path.is_file(): 
+            target_path.unlink()
             print(f'[FILE Removal] Removed {target_path}')
-        elif os.path.isdir(target_path): 
+        elif target_path.is_dir(): 
             shutil.rmtree(target_path)
             print(f'[FOLDER Removal] Removed {target_path}')
         else: print(f'[ERROR OCCURED] {target_path} seems to be something that must not exist here...')
 
-    def update(self, name,  script_depth = 0):
-        source = os.path.join(todo, 'BSDT_control', name, '__host__',self.name)
-        target = os.path.join(self.path)
-        if os.path.isfile(target): 
+    def update(self, target):
+        source = Path('TODO', 'BSDT_control', self.parent.name, '__host__',self.name) #TODO
+        if target: target_path = self.path.joinpath(*target).resolve()
+        if source.is_file(): 
             shutil.copy2(source,target)
             print(f'[FILE Update] Updated {target}')
-        elif os.path.isdir(target):
+        elif source.is_dir(target):
             shutil.copytree(source,target)
             print(f'[FOLDER Update] Updated {target}')
         else: print(f'[ERROR OCCURED] {target} seems to be something that must not exist here...')
@@ -50,7 +55,7 @@ class Obj: # 목적물 객체 클래스: 파일/디렉토리
 class text(Obj):
     def read(self,idx,idxinterval = 1):    # txt파일 읽기: 파일 형식은 \n(개행)으로 구분된 실수 리스트
         with open(self.path,'r') as f:
-            try: value = [float(line.strip('')) for line in f.readlines() if line.strip('')]
+            try: value = [float(line.strip()) for line in f.readlines() if line.strip()]
             except ValueError: raise TypeError('target file must not include something is not number')
         return pandas.DataFrame({
             self.name   : value,

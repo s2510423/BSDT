@@ -14,20 +14,20 @@ def scan(name):
             lines = f.readlines() 
             for line in lines:obj(line)
 
-    except FileNotFoundError: print(f"[FileNotFoundError] It seems that {os.path.join('BSDT_control',name,'target.bsdt')} doesn't exist.")
+    except FileNotFoundError: print(f"[FileNotFoundError] It seems that {Path('BSDT_control',name,'target.bsdt')} doesn't exist.")
 
 def write_targetlist(name,targetlist):
     
-    if os.path.exists(os.path.join(,'BSDT_control',name)): pass
-    else: os.makedirs(os.path.join(,'BSDT_control',name))
-    with open(os.path.join('BSDT_control',name,'target.bsdt'), 'w') as f:
+    if Path(,'BSDT_control',name).exists(): pass
+    else: Path(,'BSDT_control',name).mkdir(parents = True, exist_ok = True)
+    with open(Path('BSDT_control',name,'target.bsdt'), 'w') as f:
         for target in targetlist:
             f.write(f'{target}\n')
 
 def starting(head,name):
     
     target = []
-    for i in os.listdir('.'):
+    for i in Path.cwd().iterdir():
         j = i.strip()
         if j.startswith(head): 
             target.append(j)
@@ -37,7 +37,7 @@ def starting(head,name):
 def ending(foot,name):
     
     target = []
-    for i in os.listdir('.'):
+    for i in Path.cwd().iterdir():
         j = i.strip()
         if j.endswith(foot):
             target.append(j)
