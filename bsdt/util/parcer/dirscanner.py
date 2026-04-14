@@ -7,7 +7,6 @@ class obj:
         obj_list.append(name)
 
 def scan(name):
-    
     try: 
         obj_list.clear()
         with open(Path('BSDT_control',name,'target.bsdt'), 'r') as f:
@@ -18,8 +17,8 @@ def scan(name):
 
 def write_targetlist(name,targetlist):
     
-    if Path(,'BSDT_control',name).exists(): pass
-    else: Path(,'BSDT_control',name).mkdir(parents = True, exist_ok = True)
+    if Path('BSDT_control',name).exists(): pass
+    else: Path('BSDT_control',name).mkdir(parents = True, exist_ok = True)
     with open(Path('BSDT_control',name,'target.bsdt'), 'w') as f:
         for target in targetlist:
             f.write(f'{target}\n')

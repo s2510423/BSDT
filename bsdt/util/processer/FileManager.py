@@ -3,15 +3,43 @@ import pandas
 import re
 from pathlib import Path
 from typing import Union
+
+
 class Root: # 프로젝트 루트 클래스
     registry = {}
-    def __init__(self):
-        path =  
+    regi_list = []
+    def __init__(self,path:Union[str,list,Path,type(None)]=None):
+        match path:
+            case None: self.path = Path.cwd()
+            case _: self.path = Path(*path) if isinstance(path,list) else Path(path)
+        if not self.path.exists(): raise FileNotFoundError
+        if not self.path.is_dir(): raise NotADirectoryError('Root is required to be Directory.')
+        Root.registry[self] = {}
+        Root.regi_list.append(self)
+
 class Case: # 케이스 객체 클래스
-    pass # TODO
-class Obj: # 목적물 객체 클래스: 파일/디렉토리
+    regi_list=[]
+    def __init__(self,path:Union[str, list, Path],parent:Root):
+        self.path = Path(*path) if isinstance(path,list) else Path(path)
+        if not self.path.exists(): raise FileNotFoundError
+        if not self.path.is_dir(): raise NotADirectoryError('Case is required to be Directory.')
+        Root.registry[parent][self] = {}
+        Case.regi_list.append(self)
+    def foamRun(self):
+        p = subprocess.Popen(["foamRun"], cwd = self.path)
+        return p
+    def decompose(self, num):
+        with open ((self.path / "system" / "decomposeParDict"), "r") as f:
+            lines = f.readlines() 
+        with open ((self.path / "system" / "decomposeParDict"), "w") as f:
+            for line in lines:
+                if "numberOfSubdomains" in line:
+                    f.write(f"numberOfSubdomains  {num};\n")
+                else:f.write(line)
+        
+class Obj: # 말단 객체 클래스: 파일/디렉토리
     @classmethod
-    def create(cls, path:Union[str, list, Path]): # Obj 자식 클래스 검출 및 할당. 
+    def create(root:Root, case:Case, cls, path:Union[str, list, Path]): # Obj 자식 클래스 검출 및 할당. 
         path = Path(*path) if isinstance(path,list) else Path(path)
         if not path.exists(): raise FileNotFoundError
         match Path(path).suffix:
