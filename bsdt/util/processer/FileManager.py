@@ -5,30 +5,40 @@ from pathlib import Path
 from typing import Union
 
 
-class Root: # 프로젝트 루트 클래스
-    registry = {}
-    regi_list = []
+class Root:
+    "프로젝트 루트 클래스: 각각의 케이스를 담는 파라미터 스윕의 객체화" 
+    '''
+OOP 캡슐 구조로 한번에 여러 개의 스윕 관리 가능
+(쓸모가 없어야 좋겠지만) 필요시 여러개의 과제 동시 실행도 가능
+    '''
+    registry = {} # 프로젝트 전체 레지스트리 생성
+    regi_list = [] # Root 클래스로 선언된 객체 리스트를 이용한 호출 가능
     def __init__(self,path:Union[str,list,Path,type(None)]=None):
-        match path:
+        match path: # self.path 지정. path 미입력 시 작업 영역을 기준으로 함.
             case None: self.path = Path.cwd()
-            case _: self.path = Path(*path) if isinstance(path,list) else Path(path)
-        if not self.path.exists(): raise FileNotFoundError
+            case _: self.path = Path(*path) if isinstance(path,list) else Path(path) # 리스트일 경우 경로 파싱 자동
+        if not self.path.exists(): raise FileNotFoundError # 폴더 존재 여부 예외처리
         if not self.path.is_dir(): raise NotADirectoryError('Root is required to be Directory.')
-        Root.registry[self] = {}
+        Root.registry[self] = {} # 레지스트리에 스스로를 추가.
         Root.regi_list.append(self)
 
-class Case: # 케이스 객체 클래스
-    regi_list=[]
+class Case: 
+    "Obj 객체를 담는 케이스 객체 클래스" 
+    '''
+하나의 파라미터 스윕 내의 여러 케이스, 하나의 케이스 내의 여러 Obj
+말초까지 접근하지 않고도 OpenFOAM 실행 및 조건 수정 수행(개발 예정)
+    '''
+    regi_list=[] # Case 자식 객체 호출을 위한 리스트
     def __init__(self,path:Union[str, list, Path],parent:Root):
-        self.path = Path(*path) if isinstance(path,list) else Path(path)
-        if not self.path.exists(): raise FileNotFoundError
+        self.path = Path(*path) if isinstance(path,list) else Path(path) # 리스트일 경우 자동 파싱
+        if not self.path.exists(): raise FileNotFoundError # 폴더 존재 여부 핸들링
         if not self.path.is_dir(): raise NotADirectoryError('Case is required to be Directory.')
-        Root.registry[parent][self] = {}
-        Case.regi_list.append(self)
+        Root.registry[parent][self] = {"General": []} # 레지스트리에 부모 Root도 등록 -> 트리형 레지스트리 구조를 이용한 계층화 전략
+        Case.regi_list.append(self) # 평면적 리스트 형식으로 인덱싱 최적화
     def foamRun(self):
-        p = subprocess.Popen(["foamRun"], cwd = self.path)
+        p = subprocess.Popen(["foamRun"], cwd = self.path) # TODO: 임시 함수임. PyFoam으로 대체 예정.
         return p
-    def decompose(self, num):
+    def decompose(self, num): # TODO: 임시 함수임. PyFoam으로 대체 예정.
         with open ((self.path / "system" / "decomposeParDict"), "r") as f:
             lines = f.readlines() 
         with open ((self.path / "system" / "decomposeParDict"), "w") as f:
@@ -37,7 +47,13 @@ class Case: # 케이스 객체 클래스
                     f.write(f"numberOfSubdomains  {num};\n")
                 else:f.write(line)
         
-class Obj: # 말단 객체 클래스: 파일/디렉토리
+class Obj:
+    "말단 객체 클래스: 파일/디렉토리"
+    '''
+파일 삭제, 업데이트(중앙 __host__ 디렉토리 이용) 지원
+결과 파일 후처리 및 시각화 지원
+    '''
+    ''' [LEGACY]
     @classmethod
     def create(root:Root, case:Case, cls, path:Union[str, list, Path]): # Obj 자식 클래스 검출 및 할당. 
         path = Path(*path) if isinstance(path,list) else Path(path)
@@ -48,16 +64,19 @@ class Obj: # 말단 객체 클래스: 파일/디렉토리
             case '.xlsx': return excel  (path)
             case '.dat' : return forces (path)
             case _      : return Obj    (path)
-    def __init__(self, path:Union[str, list, Path]):
-        self.path = Path(*path) if isinstance(path,list) else Path(path)
-        if not self.path.exists(): raise FileNotFoundError
-        self.file = bool(self.path.is_file())
-        self.dir  = bool(self.path.is_dir())
-        self.name = self.path.name
-        classname = self.__class__.__name__
-        if not self.path.parent.name in Obj.registry: Obj.registry[self.path.parent.name] = {}
-        if not classname in Obj.registry[self.path.parent.name]: Obj.registry[self.path.parent.name][classname] = []
-        Obj.registry[self.path.parent.name][classname].append(self)
+    '''
+    regi_list=[]
+    def __init__(self, path:Union[str, list, Path], grandparent:Root, parent:Case ): # grandparent 정도는 대략 알아서 잘 이해해주시길
+        self.path = Path(*path) if isinstance(path,list) else Path(path) # 리스트 자료형 자동 파싱
+        if not self.path.exists(): raise FileNotFoundError # 폴더일 필요는 없어서 존재여부만 핸들링
+        self.file = bool(self.path.is_file()) # 필요한 변수들 설정.
+        self.dir  = bool(self.path.is_dir()) # 없는 것보다야 낫겠지
+        self.name = self.path.name # 반박시 니말이 맞음
+        classname = self.__class__.__name__ 
+        if not classname in Root.registry[grandparent][parent]: Root.registry[grandparent][parent][classname] = [] 
+        # 파일 형식에 따른 레지스트리 내 분류
+        Root.registry[grandparent][parent]["General"].append(self) # 통합 레지스트리 지원
+        Root.registry[grandparent][parent][classname].append(self)
     def delete(self, target: list): # 파일/디렉토리 삭제 메서드. target은 self 기준 상대경로
         if target: target_path = self.path.joinpath(*target).resolve()
         else: raise ValueError('target Not Found')
