@@ -3,7 +3,7 @@ import pandas
 import re
 from pathlib import Path
 from typing import Union
-
+import header
 
 class Root:
     "프로젝트 루트 클래스: 각각의 케이스를 담는 파라미터 스윕의 객체화" 
@@ -33,19 +33,24 @@ class Case:
         self.path = Path(*path) if isinstance(path,list) else Path(path) # 리스트일 경우 자동 파싱
         if not self.path.exists(): raise FileNotFoundError # 폴더 존재 여부 핸들링
         if not self.path.is_dir(): raise NotADirectoryError('Case is required to be Directory.')
-        Root.registry[parent][self] = {"General": []} # 레지스트리에 부모 Root도 등록 -> 트리형 레지스트리 구조를 이용한 계층화 전략
+        self.parent = parent
+        Root.registry[self.parent][self] = {"General": []} # 레지스트리에 부모 Root도 등록 -> 트리형 레지스트리 구조를 이용한 계층화 전략
         Case.regi_list.append(self) # 평면적 리스트 형식으로 인덱싱 최적화
+
     def foamRun(self):
-        p = subprocess.Popen(["foamRun"], cwd = self.path) # TODO: 임시 함수임. PyFoam으로 대체 예정.
+        p = subprocess.Popen(["foamRun"], cwd = self.path)
         return p
-    def decompose(self, num): # TODO: 임시 함수임. PyFoam으로 대체 예정.
-        with open ((self.path / "system" / "decomposeParDict"), "r") as f:
-            lines = f.readlines() 
-        with open ((self.path / "system" / "decomposeParDict"), "w") as f:
-            for line in lines:
-                if "numberOfSubdomains" in line:
-                    f.write(f"numberOfSubdomains  {num};\n")
-                else:f.write(line)
+    def decompose(self, np, solver):
+        i=0
+        while (self.path / 'log' / f'log.{solver}.{i}.bsdt').exists(): 
+            i += 1
+        log = self.path / log / f'log.{solver}.{i}.bsdt'
+        log.parent.mkdir(parents=True, exist_ok=True)
+        self.log = open(log, "w", encoding='utf-8')
+        self.log.write(header.logo())
+        subprocess.run(["decomposePar", "-force"], cwd=self.path)
+        p = subprocess.Popen(["mpirun", "-np", np, solver, '-parallel'], cwd=self.path, stdout=self.log, stderr=self.log, text=True)
+        return p
         
 class Obj:
     "말단 객체 클래스: 파일/디렉토리"
@@ -66,38 +71,41 @@ class Obj:
             case _      : return Obj    (path)
     '''
     regi_list=[]
-    def __init__(self, path:Union[str, list, Path], grandparent:Root, parent:Case ): # grandparent 정도는 대략 알아서 잘 이해해주시길
+    def __init__(self, path:Union[str, list, Path], parent:Case ): # grandparent 정도는 대략 알아서 잘 이해해주시길
         self.path = Path(*path) if isinstance(path,list) else Path(path) # 리스트 자료형 자동 파싱
         if not self.path.exists(): raise FileNotFoundError # 폴더일 필요는 없어서 존재여부만 핸들링
         self.file = bool(self.path.is_file()) # 필요한 변수들 설정.
         self.dir  = bool(self.path.is_dir()) # 없는 것보다야 낫겠지
         self.name = self.path.name # 반박시 니말이 맞음
         classname = self.__class__.__name__ 
-        if not classname in Root.registry[grandparent][parent]: Root.registry[grandparent][parent][classname] = [] 
+        self.parent = parent
+        self.grandparent = self.parent.parent
+        if not classname in Root.registry[self.grandparent][self.parent]: Root.registry[self.grandparent][parent][classname] = [] 
         # 파일 형식에 따른 레지스트리 내 분류
-        Root.registry[grandparent][parent]["General"].append(self) # 통합 레지스트리 지원
-        Root.registry[grandparent][parent][classname].append(self)
-    def delete(self, target: list): # 파일/디렉토리 삭제 메서드. target은 self 기준 상대경로
-        if target: target_path = self.path.joinpath(*target).resolve()
-        else: raise ValueError('target Not Found')
-        if target_path.is_file(): 
-            target_path.unlink()
-            print(f'[FILE Removal] Removed {target_path}')
-        elif target_path.is_dir(): 
-            shutil.rmtree(target_path)
-            print(f'[FOLDER Removal] Removed {target_path}')
-        else: print(f'[ERROR OCCURED] {target_path} seems to be something that must not exist here...')
+        Root.registry[self.grandparent][self.parent]["General"].append(self) # 통합 레지스트리 지원
+        Root.registry[self.grandparent][self.parent][classname].append(self)
+        Obj.regi_list.append(self)
+    def delete(self): # 셀프 삭제 메서드
+        if self.file: 
+            self.path.unlink()
+            print(f'[FILE Removal] Removed {self.path}')
+        elif self.dir: 
+            shutil.rmtree(self.path)
+            print(f'[DIRECTORY Removal] Removed {self.path}')
+        else: print(f'[ERROR OCCURED] {"{",self.path,"}"} seems to be something that must not exist here...')
+        Root.registry[self.grandparent][self.parent]["General"].remove(self) 
+        Root.registry[self.grandparent][self.parent][classname].remove(self)
+        Obj.regi_list.remove(self)
 
-    def update(self, target):
-        source = Path('TODO', 'BSDT_control', self.parent.name, '__host__',self.name) #TODO
-        if target: target_path = self.path.joinpath(*target).resolve()
-        if source.is_file(): 
-            shutil.copy2(source,target)
-            print(f'[FILE Update] Updated {target}')
-        elif source.is_dir(target):
-            shutil.copytree(source,target)
-            print(f'[FOLDER Update] Updated {target}')
-        else: print(f'[ERROR OCCURED] {target} seems to be something that must not exist here...')
+    def copy(self, source: Obj): # Obj 간 복사 메서드
+        if source.file != self.file or source.dir != self.dir: raise ValueError(f"[Type Mismatch] Between {source.path} and {self.path}. NEIN!!")
+        if source.file: 
+            shutil.copy2(source.path,self.path)
+            print(f'[FILE Copy] Synced {source.path} into {self.path}')
+        elif source.dir:
+            shutil.copytree(source.path,self.path, dirs_exist_ok=True)
+            print(f'[DIRECTORY Copy] Synced {source.path} into {self.path}')
+        else: print(f'[ERROR OCCURED] {source.path} or {self.path} seems to be something that must not exist here...')
 
 class text(Obj):
     def read(self,idx,idxinterval = 1):    # txt파일 읽기: 파일 형식은 \n(개행)으로 구분된 실수 리스트

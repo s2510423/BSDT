@@ -9,17 +9,18 @@ you can redistribute it and/or modify it under
 the terms of the GNU General Public License...
 \*-------------------------------------------*/
     ''')
-from bsdt.util import header
-from bsdt.package import pack
+from bsdt.apps.util import header
 header.banner(False)
 try: 
     import pandas
     import numpy
     import openpyxl
+    import pyfoam
 
 except ModuleNotFoundError:
     import sys
     import os
+    import subprocess
     from pathlib import Path
     subprocess.run([sys.executable, '-m','pip','install','-r', str((Path(__file__).parent / 'requirements.txt').resolve())])
     print('[ModuleNotFoundError] Installing Required Packages Automatically...')
@@ -30,6 +31,5 @@ except ModuleNotFoundError:
         print('[NotIce] just restart this process again, then it will work')
         sys.exit(0)
     else: os.execl(sys.executable, sys.executable, *sys.argv)
-from bsdt.util.parcer import  dirscanner, reader
-from bsdt.util.processer import FileManager
-from bsdt.package import pack
+import bsdt.apps.util as util
+import bsdt.apps as apps
