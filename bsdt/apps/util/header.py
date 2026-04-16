@@ -1,31 +1,54 @@
-def logo():
-    print(r'''
-┌─────────────────────────────────────────────┐
-│     ________ ________________ ________      │
-│     ___  __ )__  ___/___  __ \___  __/      │
-│     __  __  |_____ \ __  / / /__  /         │
-│     _  /_/ / ____/ / _  /_/ / _  /          │
-│     /_____/  /____/  /_____/  /_/           │
-│                                             │
-│       Bootleg Scientific Data Toolkit       │
-└─────────────────────────────────────────────┘
-고삐리가 대충만든 데이터 툴킷 v.0.0.0                                        
+__version__ = 'v.0.0.0'
+def logo(style=0):
+    match style:
+        case 0:print(rf'''
+┌────────────────────────────────────────────┐
+│     ________ ________________ ________     │
+│     ___  __ )__  ___/___  __ \___  __/     │
+│     __  __  |_____ \ __  / / /__  /        │
+│     _  /_/ / ____/ / _  /_/ / _  /         │
+│     /_____/  /____/  /_____/  /_/          │
+│      Bootleg Scientific  Data Toolkit      │
+│                                            │
+├────────────────────────────────────────────┤
+
+    Bootleg-Made Toolkit by Brainless Kiddo  
+    
+├────────────────────────────────────────────┤
+
+     고삐리가 대충만든 데이터 툴킷 {__version__}                                        
+        Bootleg Execution Starting...
+        
+└────────────────────────────────────────────┘
+''')
+        case 1:print(rf'''
+/*--------------------------------------------*\
+ |     ________ ________________ ________     |
+ |     ___  __ )__  ___/___  __ \___  __/     |
+ |     __  __  |_____ \ __  / / /__  /        |
+ |     _  /_/ / ____/ / _  /_/ / _  /         |
+ |     /_____/  /____/  /_____/  /_/          |
+ |      Bootleg Scientific Data Toolkit       |
+\*--------------------------------------------*/
+Bootleg-Made Toolkit by Brainless Kiddo 
+version = {__version__}
+
 Bootleg Execution Starting...
-    ''')
+        ''')
 def log():
     print(r'''
 
 /*-------------------------------------------*\
         Bootleg Scientific Data Toolkit        
-      고삐리가 대충만든 데이터 툴킷 v.0.0.0  
+      고삐리가 대충만든 데이터 툴킷 {__version__}  
 \*-------------------------------------------*/
 
 
 Bootleg Execution Starting...
     ''')
 
-def banner(short_bull=True):
-    if not short_bull: logo()
+def banner(short_bool=True,style=1):#style argument is only for logo setting
+    if not short_bool: logo(style)
     else: log()
 
 class Exit(Exception): pass
@@ -39,7 +62,7 @@ def menu(title,content_list,size=1): # 메뉴 출력 함수
     if not isinstance(title, str): raise TypeError('Title needs to be string')
     if not isinstance(content_list, list): raise TypeError('Content needs to be list')
 
-    width = size * 22 + 4 # 메뉴 너비 설정
+    width = size * 22 # 메뉴 너비 설정
 
         # 3. 제목의 메뉴 외부 침범 여부 확인
     if len(title) > width : raise ValueError('Title is longer than width of the menu.')
@@ -51,16 +74,17 @@ def menu(title,content_list,size=1): # 메뉴 출력 함수
 
     # 실행 함수
     num = 0
-    print('/*' + '-' * (width - 4) + '*\\')                             # /*-----------------------*\
-    print(title.center(width))                                          #         menu title         
-    print('|' + '-' * (width - 2) + '|')                                # |-------------------------|
+    print('/*' + '-' * width + '*\\')                                   # /*-----------------------*\
+    print(' |' + title.center(width) + '| ')                            #  |      menu title       | 
+    print('\\*' + '-' * width + '*/')                                   # \*-----------------------*/
     for content in content_list:                                        #     [  1  ]    content 1
         num += 1                                                        #     [  2  ]    content 2
-        print(' ' * 4 + f'[{str(num).center(5)}]' + ' ' * 4 + content)  #     [  3  ]    content 3
-    num += 1; print(f'    [{str(num).center(5)}]    exit')              #     [  4  ]    exit
-    print('\\*' + '-' * (width - 4) + '*/')                             # \*-----------------------*/
+        print(' ' * 4 + f'[{str(num).center(5)}]' + ' ' * 2 + content)  #     [  3  ]    content 3
+                                                                        #
+    num += 1;print(f'\n    [{str(num).center(5)}]    exit')             #     [  4  ]    exit
+    print('\\*' + '-' * (width - 4) + '*/' + '\n')                      # \*-----------------------*/
     while True:
-        try: choice =  int(input('[Select Your Choice]: '))                           # [Select Your Choice]: {input}
+        try: choice =  int(input('[Select Your Choice]: '))             # [Select Your Choice]: {input}
         # 예외처리
             # 1. 선택 항목 형식 확인
         except ValueError: 
