@@ -12,7 +12,7 @@ def logo(style=0):
 │                                            │
 ├────────────────────────────────────────────┤
 
-    Bootleg-Made Toolkit by Brainless Kiddo  
+    Bootleg-Made Toolkit by Brainless Highschooler
     
 ├────────────────────────────────────────────┤
 
@@ -30,7 +30,7 @@ def logo(style=0):
  |     /_____/  /____/  /_____/  /_/          |
  |      Bootleg Scientific Data Toolkit       |
 \*--------------------------------------------*/
-Bootleg-Made Toolkit by Brainless Kiddo 
+Bootleg-Made Toolkit by Brainless Highschooler
 version = {__version__}
 
 Bootleg Execution Starting...

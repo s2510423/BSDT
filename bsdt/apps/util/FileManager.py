@@ -47,7 +47,7 @@ class Case:
         log = self.path / log / f'log.{solver}.{i}.bsdt'
         log.parent.mkdir(parents=True, exist_ok=True)
         self.log = open(log, "w", encoding='utf-8')
-        self.log.write(header.logo())
+        self.log.write(header.logo(1))
         subprocess.run(["decomposePar", "-force"], cwd=self.path)
         p = subprocess.Popen(["mpirun", "-np", np, solver, '-parallel'], cwd=self.path, stdout=self.log, stderr=self.log, text=True)
         return p
@@ -77,13 +77,13 @@ class Obj:
         self.file = bool(self.path.is_file()) # 필요한 변수들 설정.
         self.dir  = bool(self.path.is_dir()) # 없는 것보다야 낫겠지
         self.name = self.path.name # 반박시 니말이 맞음
-        classname = self.__class__.__name__ 
+        self.classname = self.__class__.__name__ 
         self.parent = parent
         self.grandparent = self.parent.parent
-        if not classname in Root.registry[self.grandparent][self.parent]: Root.registry[self.grandparent][parent][classname] = [] 
+        if not self.classname in Root.registry[self.grandparent][self.parent]: Root.registry[self.grandparent][parent][self.classname] = [] 
         # 파일 형식에 따른 레지스트리 내 분류
         Root.registry[self.grandparent][self.parent]["General"].append(self) # 통합 레지스트리 지원
-        Root.registry[self.grandparent][self.parent][classname].append(self)
+        Root.registry[self.grandparent][self.parent][self.classname].append(self)
         Obj.regi_list.append(self)
     def delete(self): # 셀프 삭제 메서드
         if self.file: 
@@ -94,7 +94,7 @@ class Obj:
             print(f'[DIRECTORY Removal] Removed {self.path}')
         else: print(f'[ERROR OCCURED] {"{",self.path,"}"} seems to be something that must not exist here...')
         Root.registry[self.grandparent][self.parent]["General"].remove(self) 
-        Root.registry[self.grandparent][self.parent][classname].remove(self)
+        Root.registry[self.grandparent][self.parent][self.classname].remove(self)
         Obj.regi_list.remove(self)
 
     def copy(self, source: Obj): # Obj 간 복사 메서드
