@@ -17,7 +17,9 @@ version = v.0.0.0
 
 - A Brainless Toolkit made by Brainless Highschooler
 
-- Pls understand some awkward points on docs: I'm just a Brainless Korean Hischooler
+- Plz understand some awkward points on docs: I'm just a Brainless Korean Hischooler
+
+- 배고파요
 
 ## COMING SOON
 
